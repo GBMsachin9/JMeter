@@ -1,0 +1,34 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+- main  # Or your desired branch
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  JMETER_HOME: '$(System.DefaultWorkingDirectory)/apache-jmeter-5.5'
+
+steps:
+- task: UseJavaVersion@1
+  inputs:
+    version: '11'  # JMeter requires Java 8 or higher
+
+- script: |
+    wget https://archive.apache.org/dist/jmeter/binaries/apache-jmeter-5.5.tgz
+    tar -xvzf apache-jmeter-5.5.tgz
+  displayName: 'Install JMeter'
+
+- script: |
+    $(JMETER_HOME)/bin/jmeter -n -t your_test_plan.jmx -l results.jtl -e -o report
+  displayName: 'Run JMeter Test'
+
+- task: PublishPipelineArtifact@1
+  inputs:
+    targetPath: 'report'
+    artifact: 'jmeter-report'
+    publishLocation: 'pipeline'
+  displayName: 'Publish JMeter HTML Report'
